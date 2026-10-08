@@ -1,69 +1,164 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+"use client";
+
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [data, setData] = useState([]);
+  const [newID, setNewID] = useState("");
+  const [newNim, setNewNim] = useState("");
+  const [newNama, setNewNama] = useState("");
+
+  const fetchData = async () => {
+    const res = await fetch("/api/mahasiswa");
+    const result = await res.json();
+    setData(result);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const addData = async (e) => {
+    e.preventDefault();
+    if (!newNim || !newNama || !newID) return;
+
+    const res = await fetch("/api/mahasiswa", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: newID, nim: newNim, nama: newNama }),
+    });
+
+    if (res.ok) {
+      setNewID("");
+      setNewNim("");
+      setNewNama("");
+      fetchData();
+    }
+  };
+
+  const deleteData = async (type, id) => {
+    await fetch("/api/mahasiswa", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    fetchData();
+  };
+
+  const updateData = async (type, id_lama, id, nim, nama) => {
+    const res = await fetch("/api/mahasiswa", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id_lama, id, nim, nama }),
+    });
+
+    if (res.ok) {
+      fetchData();
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>
-            To get started, edit the{" "}
-            <code className={styles.code}>page.js</code> file.
-          </h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div style={{ padding: "20px" }}>
+      <table style={{ borderCollapse: "collapse", width: "100%", margin: "0 auto" }}>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>NIM</th>
+            <th>Nama</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((i) => (
+            <tr key={i.ID}>
+              <td style={{ padding: "10px" }}>{i.ID}</td>
+
+              <td style={{ padding: "10px" }}>
+                <input
+                  type="text"
+                  value={i.NIM || ""}
+                  onChange={(e) => {
+                    const nilaiBaru = e.target.value;
+                    setData((prevData) =>
+                      prevData.map((item) =>
+                        item.ID === i.ID ? { ...item, NIM: nilaiBaru } : item
+                      )
+                    );
+                  }}
+                />
+              </td>
+
+              <td style={{ padding: "10px" }}>
+                <input
+                  type="text"
+                  value={i.Nama || ""}
+                  onChange={(e) => {
+                    const nilaiBaru = e.target.value;
+                    setData((prevData) =>
+                      prevData.map((item) =>
+                        item.ID === i.ID ? { ...item, Nama: nilaiBaru } : item
+                      )
+                    );
+                  }}
+                />
+              </td>
+
+              <td style={{ padding: "10px" }}>
+                <button
+                  type="button"
+                  onClick={() => updateData("mahasiswa", i.ID, i.ID, i.NIM, i.Nama)}
+                  style={{backgroundColor: "darkgoldenrod", marginLeft: "10px"}}
+                >
+                  Update
+                </button>
+                <button
+                  type="button"
+                  onClick={() => deleteData("mahasiswa", i.ID)}
+                  style={{backgroundColor: "red", marginLeft: "10px"}}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+          </tbody>
+          </table>
+          <form onSubmit={addData} style={{marginTop: "20px", marginBottom: "20px", display: "flex", gap: "10px" }}>
+          <table>
+          <tbody>  
+          <tr>
+              <td>
+                <input
+                type="text"
+                placeholder="ID"
+                value={newID}
+                onChange={(e) => setNewID(e.target.value)}
+                />
+              </td>
+              <td>
+                <input
+                type="text"
+                placeholder="NIM Baru"
+                value={newNim}
+                onChange={(e) => setNewNim(e.target.value)}
+                />
+              </td>
+              <td>
+              <input
+                type="text"
+                placeholder="Nama Baru"
+                value={newNama}
+                onChange={(e) => setNewNama(e.target.value)}
+                />
+              </td>
+              <td>
+                <button type="submit" style={{columnSpan:2,backgroundColor:"darkgreen"}}>Tambah Mahasiswa</button>
+              </td>
+            </tr>
+        </tbody>
+      </table>
+      </form>
+      
     </div>
   );
 }
