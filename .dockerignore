@@ -1,0 +1,15 @@
+node_modules
+.next
+out
+build
+coverage
+.git
+.gitignore
+.env*
+npm-debug.log*
+Dockerfile
+.dockerignore
+docker-stack.yml
+init.sql
+README.md
+AGENTS.md
