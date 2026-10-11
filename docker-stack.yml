@@ -1,0 +1,59 @@
+services:
+  app:
+    image: oxygenv2/swarmapp:1.0
+    ports:
+      - "3000:3000"
+    environment:
+      MYSQL_HOST: db
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+      MYSQL_DATABASE: swarmdb
+    networks:
+      - appnet
+    deploy:
+      replicas: 3
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      rollback_config:
+        parallelism: 1
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: swarmdb
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppass
+    volumes:
+      - dbdata:/var/lib/mysql
+    configs:
+      - source: initdb
+        target: /docker-entrypoint-initdb.d/init.sql
+    networks:
+      - appnet
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+
+networks:
+  appnet:
+    driver: overlay
+
+volumes:
+  dbdata:
+
+configs:
+  initdb:
+    file: ./init.sql
