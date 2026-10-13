@@ -4,10 +4,10 @@ services:
     ports:
       - "3000:3000"
     environment:
-      MYSQL_HOST: db
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppass
-      MYSQL_DATABASE: swarmdb
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
     networks:
       - appnet
     deploy:
@@ -27,10 +27,10 @@ services:
   db:
     image: mysql:8.4
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
-      MYSQL_DATABASE: swarmdb
-      MYSQL_USER: appuser
-      MYSQL_PASSWORD: apppass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     volumes:
       - dbdata:/var/lib/mysql
     configs:
@@ -39,7 +39,7 @@ services:
     networks:
       - appnet
     deploy:
-      replicas: 1
+      replicas: 3
       placement:
         constraints:
           - node.role == manager
